@@ -1,4 +1,4 @@
-Purpose:
+## Purpose
 
 provide the password needed to open the encrypted private key file
 (/var/flash/websrv_ssl_key.pem) from FRITZ!OS versions above 06.20
@@ -38,7 +38,7 @@ Having a solution to use the same private key for different services does
 not mean, you're obliged to use the same identity, but you get the
 *chance* to do so.
 
-REMARKS:
+## Remarks
 
 Either the `libboxlib.so` implementation is faulty or under uClibc something
 else wents wrong (perhaps with `pthread_atfork()` handlers) => but calling
