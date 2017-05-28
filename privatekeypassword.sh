@@ -55,7 +55,8 @@ maca_name="maca"
 __get_maca_from_environment()
 (
 	[ -f "$procfs_path" ] || return 1
-	sed -n -e "s|^${maca_name}[ \t]*\([0-9A-F:]*\)|\1|p" "$procfs_path" && return 0
+	sed -n -e "s|^${maca_name}[ \t]*\([0-9A-F:]*\)|\1|p" "$procfs_path" 
+	return 0
 )
 #######################################################################################################
 #                                                                                                     #
@@ -98,7 +99,7 @@ fi
 # compute the hash now                                                                                #
 #                                                                                                     #
 #######################################################################################################
-for v in $(printf "%s" "$maca" | md5sum - 2>/dev/null | sed -n -e "s|^\([0-9a-fA-F]\{16\}\).*|\1|p" -e "y/abcdef/ABCDEF/" | sed -e "s|..|& |g"); do
+for v in $(printf "%s" "$maca" | md5sum - 2>/dev/null | sed -n -e "s|^\([0-9a-fA-F]\{16\}\).*|\1|p" | sed -e "s|..|& |g"); do
 	printf "%c" "$(expr "$translation_table" : ".\{$(( 0x$v % 64 ))\}\(.\).*")"
 done
 printf "\n"
