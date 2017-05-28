@@ -3,6 +3,31 @@
 provide the password needed to open the encrypted private key file
 (/var/flash/websrv_ssl_key.pem) from FRITZ!OS versions above 06.20
 
+## Update 05/28/2017
+
+Finally I've added a shell based implementation today. I faced the decision to add
+usage of libprivatekeypassword.so to another open-source packet or to simplify
+the way to determine the correct password. In the past, as I published the limited
+version, which needs the library from vendor, I had other (primary) goals and
+meanwhile I think, it doesn't matter anymore, if the way to compute this password
+gets known to the public.
+
+If you'd like to use the shell version, you can replace the 'privatekeypassword'
+binary with the shell script, as long as the needed commands (md5sum, sed, printf
+and expr) are available in a POSIX-compatible implementation.
+
+Maybe I will update the library source code too ... there's no reason to use 
+libboxlib.so and even the MD5 functions from uClibc can be used. So there're 
+no more dependencies, if AVM decides to change anything here.
+
+But for my own patches for 'dropbear', 'shellinabox' or 'stunnel' I tend to switch
+to a (piped -> with popen()) execution of the shell script, as it would make future
+changes easier.
+
+*End of update*
+
+## The C program on the box
+
 That's finally the "vendor's way" to get the "secret" password for the
 private key file.
 
