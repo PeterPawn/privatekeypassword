@@ -40,7 +40,7 @@
 # constants                                                                                           #
 #                                                                                                     #
 #######################################################################################################
-translation_table="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+translation_table='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$!'
 procfs_path="/proc/sys/urlader/environment"
 maca_name="maca"
 #######################################################################################################
