@@ -1,20 +1,24 @@
 /*
- * Licensed under GPLv2 
- * Copyright (C) 2014-2015, Peter Haemmerlein (opensource@peh-consulting.de)
+ * vim: set tabstop=4 syntax=c :
+ *
+ * Copyright (C) 2014-2017, Peter Haemmerlein (peterpawn@yourfritz.de)
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
-
+ *
  * You should have received a copy of the GNU General Public License
- * along with this program, please look for the file COPYING.
+ * along with this program, please look for the file LICENSE.
  */
+
+// interface library for private key password access - emulates the older
+// functions, but uses direct digest computation and translation
 
 #ifndef PRIVATEKEYPASSWORD_H
 
@@ -29,20 +33,20 @@ typedef enum {
 	PRIVATEKEYPASSWORD_ERROR_NOMEMORY = 1,
 	// proxy binary not found or not accessible or not executable
 	PRIVATEKEYPASSWORD_ERROR_NOPASSWORD = 2,
-	// proxy binary not found or not accessible or not executable
+	// error code is unused now
 	PRIVATEKEYPASSWORD_ERROR_NOPROXY = 3,
-	// error executing proxy binary, but preconditions were met
+	// error code is unused now
 	PRIVATEKEYPASSWORD_ERROR_PROXYERROR = 4,
-	// error calling dynamic loader functions
+	// error code is unused now
 	PRIVATEKEYPASSWORD_ERROR_DLERROR = 5,
-	// unexpected length of password, it has to be VENDOR_PASSWORD_SIZE
+	// error code is unused now
 	PRIVATEKEYPASSWORD_ERROR_UNEXPLEN = 6,
-	// too many unsuccessfully attempts to get the password
+	// error code is unused now
 	PRIVATEKEYPASSWORD_ERROR_TOOMANYTRIES = 7
-// to be continued
 } privateKeyPassword_error_t;
 
 // call methods enumeration to select the way to determine the password
+// not used anymore - this setting is completely ignored
 
 typedef enum {
 	// use dynamic loader functions to load vendor's library
@@ -59,7 +63,7 @@ typedef enum {
 // - the returned string is empty in case of any error
 // - call getPrivateKeyPassword_Error() to get an error code explaining the
 //   reason for the latest error
-char *getStaticPrivateKeyPassword(void);
+char *	getStaticPrivateKeyPassword(void);
 
 // char *getPrivateKeyPassword(void)
 //
@@ -69,13 +73,13 @@ char *getStaticPrivateKeyPassword(void);
 // - the caller is responsible to free the buffer, if the pointer isn't NULL
 // - call getPrivateKeyPassword_Error() to get an error code explaining the
 //   reason for the latest error
-char *getPrivateKeyPassword(void);
+char *	getPrivateKeyPassword(void);
 
 // privateKeyPassword_error_t getPrivateKeyPassword_Error(void)
 // 
 // - return the latest error code for any call of this library
 // - the returned value is cleared after this call
-privateKeyPassword_error_t getPrivateKeyPassword_Error(void);
+privateKeyPassword_error_t	getPrivateKeyPassword_Error(void);
 
 // void getPrivateKeyPassword_setMethod(privateKeyPassword_method_t method)
 //
@@ -84,18 +88,20 @@ privateKeyPassword_error_t getPrivateKeyPassword_Error(void);
 //   binaries and will result in a SIGSEGV while doing dlopen() calls
 // - the alternative way (calling a proxy binary) has other disadvantages like
 //   an additional dependency and a higher 'costs' starting another process
-void getPrivateKeyPassword_setMethod(privateKeyPassword_method_t method);
+//
+// does nothing now
+void	getPrivateKeyPassword_setMethod(privateKeyPassword_method_t method);
 
 // int getPrivateKeyPassword_OpenSSL_Callback()
 //
 // - an additional function with the needed interface for OpenSSL password
 //   callbacks
-int getPrivateKeyPassword_OpenSSL_Callback(char *buf, int size, int rwflag, void * userdata);
+int		getPrivateKeyPassword_OpenSSL_Callback(char * buf, int size, int rwflag, void * userdata);
 
 // int getPrivateKeyPassword_WithBuffer(char *buf, size_t size)
 //
 // - an additional function with the needed interface to be compatible with
 //   the library from er13
-int getPrivateKeyPassword_WithBuffer(char *buf, size_t size);
+int		getPrivateKeyPassword_WithBuffer(char * buf, size_t size);
 
 #endif
