@@ -17,17 +17,26 @@
  * along with this program, please look for the file LICENSE.
  */
 
+#include <features.h>
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic error "-Wfatal-errors"
 
-#ifndef	__UCLIBC__
+#if !defined(__UCLIBC__)
 #error This library is designed to work with the uClibc library on a FRITZ!OS device.
 #pragma GCC error "Compilation aborted."
 #endif
 
 #pragma GCC diagnostic pop
 
-#include <libcrypt.h>
+#include <stddef.h>
+#include <ctype.h>
+#include <stdio.h>
+#include <inttypes.h>
+#include <stdbool.h>
+#include <string.h>
+#include <stdlib.h>
+
 #include "privatekeypassword.h"
 
 #define	pkpwd_setError(err)				__privateKeyPassword_error = PRIVATEKEYPASSWORD_ERROR_##err
@@ -48,22 +57,38 @@
 
 #define	TRANSLATION_TABLE				"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$!"
 
+#define	EXPORTED						__attribute__((__visibility__("default"), used, externally_visible))
+
+#define	UNUSED							__attribute__((unused))
+
 // the static variable for our error code, it will be cleared after reading
 
-static privateKeyPassword_error_t __privateKeyPassword_error = PRIVATEKEYPASSWORD_ERROR_NOERROR;
+static	privateKeyPassword_error_t	__privateKeyPassword_error = PRIVATEKEYPASSWORD_ERROR_NOERROR;
 
 // the static variable for our error code, it will be cleared after reading
 
-static privateKeyPassword_method_t __privateKeyPassword_method = PRIVATEKEYPASSWORD_METHOD_DL;
+UNUSED	static	privateKeyPassword_method_t	__privateKeyPassword_method = PRIVATEKEYPASSWORD_METHOD_DL;
 
 // the password is cached in a static variable once read, 'cause it's never 
 // changed anymore
 
-static char __privateKeyPassword_cache[MAX_CACHED_PASSWORD_SIZE + 1] = { '\0' };
+static char	__privateKeyPassword_cache[MAX_CACHED_PASSWORD_SIZE + 1] = { '\0' };
+
+// MD5 functions from md5.c
+
+struct MD5Context {
+    uint32_t			state[4];
+    uint32_t			count[2];
+    unsigned char		buffer[64];
+};
+
+UNUSED	extern	void	__md5_Init(struct MD5Context *);
+UNUSED	extern	void	__md5_Update(struct MD5Context *, const unsigned char *, unsigned int);
+UNUSED	extern	void	__md5_Final(unsigned char [16], struct MD5Context *);
 
 // internal helper functions
 
-bool	__privateKeyPassword_GetMAC(char * maca)
+bool	__privateKeyPassword_GetMAC(unsigned char * maca)
 {
 	*maca = '\0';
 
@@ -81,7 +106,7 @@ bool	__privateKeyPassword_GetMAC(char * maca)
 	{
 		if (!strncmp(buffer, MACA_NAME, strlen(MACA_NAME)))
 		{
-			strncpy(maca, buffer + strlen(MACA_NAME), 18);
+			strncpy((char *) maca, buffer + strlen(MACA_NAME), 18);
 			*(maca + 17) = '\0';
 			break;
 		}
@@ -96,8 +121,9 @@ bool	__privateKeyPassword_GetMAC(char * maca)
 void	__privateKeyPassword_Compute(void)
 {
 	struct MD5Context	ctx;
-	char				hash[MD5_SIZE];
-	char				maca[MACA_SIZE];
+	unsigned char		hash[MD5_SIZE];
+	unsigned char		maca[MACA_SIZE];
+	char *				table = TRANSLATION_TABLE;
 
 	__privateKeyPassword_cache[0] = '\0';
 	
@@ -105,7 +131,7 @@ void	__privateKeyPassword_Compute(void)
 		return;
 
 	__md5_Init(&ctx);
-	__md5_Update(&ctx, maca, strlen(maca));
+	__md5_Update(&ctx, maca, strlen((char *) maca));
 	__md5_Final(hash, &ctx);
 	
 	for (size_t i = 0; i < PASSWORD_SIZE; i++)
@@ -135,9 +161,9 @@ char *	__privateKeyPassword_malloc(const char * source)
 	pkpwd_returnError(NOERROR, password);
 }
 
-char *	__privateKeyPassword_fromCache()
+char *	__privateKeyPassword_fromCache(void)
 {
-	int 				len = strlen(__privateKeyPassword_cache);
+	int 				len = strlen((char *) __privateKeyPassword_cache);
 
 	if (len) 
 		pkpwd_returnError(NOERROR, __privateKeyPassword_cache);
@@ -208,7 +234,7 @@ EXPORTED	char *	getPrivateKeyPassword(void)
 //   binaries and will result in a SIGSEGV while doing dlopen() calls
 // - the alternative way (calling a proxy binary) has other disadvantages like
 //   an additional dependency and a higher 'costs' starting another process
-EXPORTED	void	getPrivateKeyPassword_setMethod(privateKeyPassword_method_t method)
+EXPORTED	void	getPrivateKeyPassword_setMethod(UNUSED privateKeyPassword_method_t method)
 {
 	return;
 }

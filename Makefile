@@ -11,7 +11,7 @@ LIBHDR:=$(BASENAME).h
 #
 # source files
 #
-LIB_SRCS = $(BASENAME).c
+LIB_SRCS = $(BASENAME).c md5.c
 LIB_OBJS = $(LIB_SRCS:%.c=%.o)
 #
 # tools
