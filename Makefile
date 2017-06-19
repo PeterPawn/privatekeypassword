@@ -7,7 +7,7 @@ BASENAME:=privatekeypassword
 LIBNAME:=lib$(BASENAME)
 LIBRARY:=$(LIBNAME).so
 LIB:=$(LIBNAME).a
-LIBHDR:=$(BASENAME).h
+LIBHDR:=$(BASENAME).h libcrypt.h
 #
 # source files
 #
@@ -23,8 +23,8 @@ RANLIB = ranlib
 #
 # flags for calling the tools
 #
-#override CFLAGS += -W -Wall -std=c99 -O2 -fvisibility=hidden 
-override CFLAGS += -W -Wall -std=c99 -O0 -ggdb -fvisibility=hidden
+#override CFLAGS += -W -Wall -std=c99 -O2
+override CFLAGS += -W -Wall -std=c99 -O0 -ggdb
 #
 # how to build objects from sources
 #
@@ -37,7 +37,7 @@ $(LIB_OBJS): CFLAGS += -fPIC
 #
 # link binaries with this libraries too
 #
-LIBS = -lcrypt
+LIBS = 
 #
 # targets to make
 #
@@ -56,13 +56,13 @@ install-lib: $(LIBRARY) $(LIB) $(LIBHDR)
 # shared library
 #
 $(LIBRARY): $(LIB_OBJS) 
-	$(CC) -shared -o $@ $<
+	$(CC) -shared -o $@ $^
 #
 # static library
 #
-$(LIB): $(LIB_OBJS) $(LIBHDR)
+$(LIB): $(LIB_OBJS)
 	-$(RM) $@ 2>/dev/null
-	$(AR) rcu $@ $<
+	$(AR) rcu $@ $^
 	$(RANLIB) $@
 #
 # everything to make, if header file changes
