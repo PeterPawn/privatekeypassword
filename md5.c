@@ -90,11 +90,11 @@ struct MD5Context {
   unsigned char buffer[64];	/* input buffer */
 };
 
-static void   __md5_Init (struct MD5Context *);
-static void   __md5_Update (struct MD5Context *, const unsigned char *, unsigned int);
-static void   __md5_Pad (struct MD5Context *);
-static void   __md5_Final (unsigned char [16], struct MD5Context *);
-static void __md5_Transform __P((u_int32_t [4], const unsigned char [64]));
+static	void	__md5_Init (struct MD5Context *);
+static	void	__md5_Update (struct MD5Context *, const unsigned char *, unsigned int);
+static	void	__md5_Pad (struct MD5Context *);
+static	void	__md5_Final (unsigned char [16], struct MD5Context *);
+static	void	__md5_Transform __P((u_int32_t [4], const unsigned char [64]));
 
 
 #define MD5_MAGIC_STR "$1$"
