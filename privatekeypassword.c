@@ -55,7 +55,7 @@
 
 #define	PASSWORD_SIZE					8
 
-#define	TRANSLATION_TABLE				"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$!"
+#define	TRANSLATION_TABLE				"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!$"
 
 #define	EXPORTED						__attribute__((__visibility__("default"), used, externally_visible))
 
