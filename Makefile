@@ -62,19 +62,19 @@ install-lib: $(LIB_SO) $(LIB_A) $(LIBHDR)
 # shared library
 #
 $(LIB_SO): $(LIB_OBJS) $(LIBHDR) libcrypt.h
-	$(CC) -shared -o $@ $<
+	$(CC) -shared -o $@ $(filter %.o,$^)
 #
 # static library
 #
 $(LIB_A): $(LIB_OBJS) $(LIBHDR) libcrypt.h
 	-$(RM) $@ 2>/dev/null
-	$(AR) rcu $@ $<
+	$(AR) rcu $@ $(filter %.o,$^)
 	$(RANLIB) $@
 #
 # the CLI binary
 #
 $(BINARY): $(BIN_OBJS) $(LIB_SO)
-	$(CC) $(LDFLAGS) $(filter %.o,$<) -L. -l$(BASENAME) -o $@ $(LIBS)
+	$(CC) $(LDFLAGS) $(filter %.o,$^) -L. -l$(BASENAME) -o $@ $(LIBS)
 #
 # everything to make, if header file changes
 #
