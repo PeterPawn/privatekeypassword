@@ -2,16 +2,22 @@
 #
 BASENAME:=privatekeypassword
 #
+# target binary, used as proxy too
+# 
+BINARY:=$(BASENAME)
+#
 # library settings
 #
 LIBNAME:=lib$(BASENAME)
 LIBRARY:=$(LIBNAME).so
 LIB:=$(LIBNAME).a
-LIBHDR:=$(BASENAME).h libcrypt.h
+LIBHDR:=$(BASENAME).h
 #
 # source files
 #
-LIB_SRCS = $(BASENAME).c md5.c
+BIN_SRCS = privatekeypassword.c
+BIN_OBJS = $(BIN_SRCS:%.c=%.o)
+LIB_SRCS = pkpwd.c
 LIB_OBJS = $(LIB_SRCS:%.c=%.o)
 #
 # tools
@@ -23,8 +29,8 @@ RANLIB = ranlib
 #
 # flags for calling the tools
 #
-#override CFLAGS += -W -Wall -std=c99 -O2
-override CFLAGS += -W -Wall -std=c99 -O0 -ggdb
+override CFLAGS += -W -Wall -std=c99 -O2 -fvisibility=hidden 
+#override CFLAGS += -W -Wall -std=c99 -O0 -ggdb -fvisibility=hidden
 #
 # how to build objects from sources
 #
@@ -43,7 +49,7 @@ LIBS =
 #
 .PHONY: all clean
 #
-all: $(LIBRARY) $(LIB)
+all: $(LIBRARY) $(LIB) $(BINARY)
 #
 # install library files into the Freetz build system
 # DESTDIR will be set to the target directory while calling this target
@@ -56,20 +62,25 @@ install-lib: $(LIBRARY) $(LIB) $(LIBHDR)
 # shared library
 #
 $(LIBRARY): $(LIB_OBJS) 
-	$(CC) -shared -o $@ $^
+	$(CC) -shared -o $@ $<
 #
 # static library
 #
-$(LIB): $(LIB_OBJS)
+$(LIB): $(LIB_OBJS) $(LIBHDR)
 	-$(RM) $@ 2>/dev/null
-	$(AR) rcu $@ $^
+	$(AR) rcu $@ $<
 	$(RANLIB) $@
+#
+# the CLI binary
+#
+$(BINARY): $(BIN_OBJS) $(LIBRARY)
+	$(CC) $(LDFLAGS) $(filter %.o,$<) -L. -l$(BASENAME) -o $@ $(LIBS)
 #
 # everything to make, if header file changes
 #
-$(LIB_OBJS): $(LIBHDR)
+$(LIB_OBJS) $(BIN_OBJS): $(LIBHDR)
 #
 # cleanup 	
 #
 clean:
-	-$(RM) *.o $(LIB) $(LIBRARY) 2>/dev/null
+	-$(RM) *.o $(LIB) $(LIBRARY) $(BINARY) 2>/dev/null
