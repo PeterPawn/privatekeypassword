@@ -17,7 +17,7 @@ LIBHDR:=$(BASENAME).h
 #
 BIN_SRCS = privatekeypassword.c
 BIN_OBJS = $(BIN_SRCS:%.c=%.o)
-LIB_SRCS = pkpwd.c
+LIB_SRCS = pkpwd.c md5.c
 LIB_OBJS = $(LIB_SRCS:%.c=%.o)
 #
 # tools
@@ -61,12 +61,12 @@ install-lib: $(LIB_SO) $(LIB_A) $(LIBHDR)
 #
 # shared library
 #
-$(LIB_SO): $(LIB_OBJS) 
+$(LIB_SO): $(LIB_OBJS) $(LIBHDR) libcrypt.h
 	$(CC) -shared -o $@ $<
 #
 # static library
 #
-$(LIB_A): $(LIB_OBJS) $(LIBHDR)
+$(LIB_A): $(LIB_OBJS) $(LIBHDR) libcrypt.h
 	-$(RM) $@ 2>/dev/null
 	$(AR) rcu $@ $<
 	$(RANLIB) $@
@@ -78,7 +78,7 @@ $(BINARY): $(BIN_OBJS) $(LIB_SO)
 #
 # everything to make, if header file changes
 #
-$(LIB_OBJS) $(BIN_OBJS): $(LIBHDR)
+$(LIB_OBJS) $(BIN_OBJS): $(LIBHDR) libcrypt.h
 #
 # cleanup 	
 #
