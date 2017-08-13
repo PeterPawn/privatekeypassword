@@ -179,7 +179,7 @@ __md5_Decode (u_int32_t *output, const unsigned char *input, unsigned int len)
 
 /* MD5 initialization. Begins an MD5 operation, writing a new context. */
 
-static void __md5_Init (struct MD5Context *context)
+__attribute__((unused)) static void __md5_Init (struct MD5Context *context)
 {
 	context->count[0] = context->count[1] = 0;
 
@@ -260,7 +260,7 @@ static void __md5_Pad ( struct MD5Context *context)
  * the message digest and zeroizing the context.
  */
 
-static void __md5_Final ( unsigned char digest[16], struct MD5Context *context)
+__attribute__((unused)) static void __md5_Final ( unsigned char digest[16], struct MD5Context *context)
 {
 	/* Do padding. */
 	__md5_Pad (context);
