@@ -22,10 +22,10 @@ LIB_OBJS = $(LIB_SRCS:%.c=%.o)
 #
 # tools
 #
-CC = gcc
+CC = $(CROSS_COMPILE)gcc
 RM = rm
-AR = ar
-RANLIB = ranlib
+AR = $(CROSS_COMPILE)ar
+RANLIB = $(CROSS_COMPILE)ranlib
 #
 # flags for calling the tools
 #
