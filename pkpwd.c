@@ -82,9 +82,9 @@ struct MD5Context {
     unsigned char		buffer[64];
 };
 
-UNUSED	extern	void	__md5_Init(struct MD5Context *);
-UNUSED	extern	void	__md5_Update(struct MD5Context *, const unsigned char *, unsigned int);
-UNUSED	extern	void	__md5_Final(unsigned char [16], struct MD5Context *);
+void	__md5_Init(struct MD5Context *);
+void	__md5_Update(struct MD5Context *, const unsigned char *, unsigned int);
+void	__md5_Final(unsigned char [16], struct MD5Context *);
 
 // internal helper functions
 

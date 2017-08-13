@@ -83,6 +83,10 @@
 #include <sys/cdefs.h>
 #include "libcrypt.h"
 
+#define	EXPORTED						__attribute__((__visibility__("default"), used, externally_visible))
+
+#define	UNUSED							__attribute__((unused))
+
 /* MD5 context. */
 struct MD5Context {
   u_int32_t state[4];	/* state (ABCD) */
@@ -90,11 +94,11 @@ struct MD5Context {
   unsigned char buffer[64];	/* input buffer */
 };
 
-static	void	__md5_Init (struct MD5Context *);
-static	void	__md5_Update (struct MD5Context *, const unsigned char *, unsigned int);
-static	void	__md5_Pad (struct MD5Context *);
-static	void	__md5_Final (unsigned char [16], struct MD5Context *);
-static	void	__md5_Transform __P((u_int32_t [4], const unsigned char [64]));
+void	__md5_Init (struct MD5Context *);
+void	__md5_Update (struct MD5Context *, const unsigned char *, unsigned int);
+void	__md5_Pad (struct MD5Context *);
+void	__md5_Final (unsigned char [16], struct MD5Context *);
+void	__md5_Transform __P((u_int32_t [4], const unsigned char [64]));
 
 
 #define MD5_MAGIC_STR "$1$"
@@ -179,7 +183,7 @@ __md5_Decode (u_int32_t *output, const unsigned char *input, unsigned int len)
 
 /* MD5 initialization. Begins an MD5 operation, writing a new context. */
 
-__attribute__((unused)) static void __md5_Init (struct MD5Context *context)
+EXPORTED void __md5_Init (struct MD5Context *context)
 {
 	context->count[0] = context->count[1] = 0;
 
@@ -196,7 +200,8 @@ __attribute__((unused)) static void __md5_Init (struct MD5Context *context)
  * context.
  */
 
-static void __md5_Update ( struct MD5Context *context, const unsigned char *input, unsigned int inputLen)
+EXPORTED void __md5_Update ( struct MD5Context *context, const unsigned char *input, unsigned int inputLen)
+
 {
 	unsigned int i, idx, partLen;
 
@@ -234,7 +239,7 @@ static void __md5_Update ( struct MD5Context *context, const unsigned char *inpu
  * MD5 padding. Adds padding followed by original length.
  */
 
-static void __md5_Pad ( struct MD5Context *context)
+void __md5_Pad ( struct MD5Context *context)
 {
 	unsigned char bits[8];
 	unsigned int idx, padLen;
@@ -260,7 +265,7 @@ static void __md5_Pad ( struct MD5Context *context)
  * the message digest and zeroizing the context.
  */
 
-__attribute__((unused)) static void __md5_Final ( unsigned char digest[16], struct MD5Context *context)
+EXPORTED void __md5_Final ( unsigned char digest[16], struct MD5Context *context)
 {
 	/* Do padding. */
 	__md5_Pad (context);
@@ -274,7 +279,7 @@ __attribute__((unused)) static void __md5_Final ( unsigned char digest[16], stru
 
 /* MD5 basic transformation. Transforms state based on block. */
 
-static void __md5_Transform (u_int32_t state[4], const unsigned char block[64])
+void __md5_Transform (u_int32_t state[4], const unsigned char block[64])
 {
 	u_int32_t a, b, c, d, x[16];
 #if MD5_SIZE_OVER_SPEED > 1
