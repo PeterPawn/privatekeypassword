@@ -9,8 +9,8 @@ BINARY:=$(BASENAME)
 # library settings
 #
 LIBNAME:=lib$(BASENAME)
-LIBRARY:=$(LIBNAME).so
-LIB:=$(LIBNAME).a
+LIB_SO:=$(LIBNAME).so
+LIB_A:=$(LIBNAME).a
 LIBHDR:=$(BASENAME).h
 #
 # source files
@@ -49,31 +49,31 @@ LIBS =
 #
 .PHONY: all clean
 #
-all: $(LIBRARY) $(LIB) $(BINARY)
+all: $(LIB_SO) $(LIB_A) $(BINARY)
 #
 # install library files into the Freetz build system
 # DESTDIR will be set to the target directory while calling this target
 #
-install-lib: $(LIBRARY) $(LIB) $(LIBHDR)
+install-lib: $(LIB_SO) $(LIB_A) $(LIBHDR)
 	mkdir -p $(DESTDIR)/usr/include/$(BASENAME) $(DESTDIR)/usr/lib
 	cp -a $(LIBHDR) $(DESTDIR)/usr/include/$(BASENAME)
-	cp -a $(LIBRARY) $(LIB) $(DESTDIR)/usr/lib/
+	cp -a $(LIB_SO) $(LIB_A) $(DESTDIR)/usr/lib/
 #
 # shared library
 #
-$(LIBRARY): $(LIB_OBJS) 
+$(LIB_SO): $(LIB_OBJS) 
 	$(CC) -shared -o $@ $<
 #
 # static library
 #
-$(LIB): $(LIB_OBJS) $(LIBHDR)
+$(LIB_A): $(LIB_OBJS) $(LIBHDR)
 	-$(RM) $@ 2>/dev/null
 	$(AR) rcu $@ $<
 	$(RANLIB) $@
 #
 # the CLI binary
 #
-$(BINARY): $(BIN_OBJS) $(LIBRARY)
+$(BINARY): $(BIN_OBJS) $(LIB_SO)
 	$(CC) $(LDFLAGS) $(filter %.o,$<) -L. -l$(BASENAME) -o $@ $(LIBS)
 #
 # everything to make, if header file changes
@@ -83,4 +83,4 @@ $(LIB_OBJS) $(BIN_OBJS): $(LIBHDR)
 # cleanup 	
 #
 clean:
-	-$(RM) *.o $(LIB) $(LIBRARY) $(BINARY) 2>/dev/null
+	-$(RM) *.o $(LIB_SO) $(LIB_A) $(BINARY) 2>/dev/null
