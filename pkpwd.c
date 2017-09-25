@@ -69,7 +69,7 @@ static	privateKeyPassword_error_t		__privateKeyPassword_error = PRIVATEKEYPASSWO
 
 static char								__privateKeyPassword_cache[MAX_CACHED_PASSWORD_SIZE + 1] = { '\0' };
 
-// MD5 functions from md5.c
+// MD5 function from md5.c
 
 extern void		md5(unsigned char * output, const unsigned char * input, unsigned int inputLen);
 
@@ -82,7 +82,10 @@ bool	__privateKeyPassword_GetMAC(unsigned char * maca)
 	char *	buffer = malloc(1024);
 
 	if (!buffer)
+	{
+		pkpwd_setError(NOMEMORY);
 		return false;
+	}
 
 	FILE *	env = fopen(URLADER_ENV, "r");
 
