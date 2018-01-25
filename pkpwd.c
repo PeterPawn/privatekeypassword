@@ -63,28 +63,15 @@
 
 // the static variable for our error code, it will be cleared after reading
 
-static	privateKeyPassword_error_t	__privateKeyPassword_error = PRIVATEKEYPASSWORD_ERROR_NOERROR;
+static	privateKeyPassword_error_t		__privateKeyPassword_error = PRIVATEKEYPASSWORD_ERROR_NOERROR;
 
-// the static variable for our error code, it will be cleared after reading
+// the password is cached in a static variable once read, 'cause it's never changed anymore
 
-UNUSED	static	privateKeyPassword_method_t	__privateKeyPassword_method = PRIVATEKEYPASSWORD_METHOD_DL;
+static char								__privateKeyPassword_cache[MAX_CACHED_PASSWORD_SIZE + 1] = { '\0' };
 
-// the password is cached in a static variable once read, 'cause it's never 
-// changed anymore
+// MD5 function from md5.c
 
-static char	__privateKeyPassword_cache[MAX_CACHED_PASSWORD_SIZE + 1] = { '\0' };
-
-// MD5 functions from md5.c
-
-struct MD5Context {
-    uint32_t			state[4];
-    uint32_t			count[2];
-    unsigned char		buffer[64];
-};
-
-void	__md5_Init(struct MD5Context *);
-void	__md5_Update(struct MD5Context *, const unsigned char *, unsigned int);
-void	__md5_Final(unsigned char [16], struct MD5Context *);
+extern void		md5(unsigned char * output, const unsigned char * input, unsigned int inputLen);
 
 // internal helper functions
 
@@ -92,12 +79,15 @@ bool	__privateKeyPassword_GetMAC(unsigned char * maca)
 {
 	*maca = '\0';
 
-	char *				buffer = malloc(1024);
+	char *	buffer = malloc(1024);
 
 	if (!buffer)
+	{
+		pkpwd_setError(NOMEMORY);
 		return false;
+	}
 
-	FILE *				env = fopen(URLADER_ENV, "r");
+	FILE *	env = fopen(URLADER_ENV, "r");
 
 	if (!env)
 		return false;
@@ -106,8 +96,8 @@ bool	__privateKeyPassword_GetMAC(unsigned char * maca)
 	{
 		if (!strncmp(buffer, MACA_NAME, strlen(MACA_NAME)))
 		{
-			strncpy((char *) maca, buffer + strlen(MACA_NAME), 18);
-			*(maca + 17) = '\0';
+			strncpy((char *) maca, buffer + strlen(MACA_NAME), MACA_SIZE);
+			*(maca + MACA_SIZE - 1) = '\0';
 			break;
 		}
 	}
@@ -120,23 +110,20 @@ bool	__privateKeyPassword_GetMAC(unsigned char * maca)
 
 void	__privateKeyPassword_Compute(void)
 {
-	struct MD5Context	ctx;
-	unsigned char		hash[MD5_SIZE];
-	unsigned char		maca[MACA_SIZE];
-	char *				table = TRANSLATION_TABLE;
+	unsigned char	hash[MD5_SIZE];
+	unsigned char	maca[MACA_SIZE];
+	char *			table = TRANSLATION_TABLE;
 
 	__privateKeyPassword_cache[0] = '\0';
 	
 	if (!__privateKeyPassword_GetMAC(maca))
 		return;
 
-	__md5_Init(&ctx);
-	__md5_Update(&ctx, maca, strlen((char *) maca));
-	__md5_Final(hash, &ctx);
+	md5(hash, maca, strlen((char *) maca));
 	
 	for (size_t i = 0; i < PASSWORD_SIZE; i++)
 	{
-		char			c = hash[i];
+		char	c = hash[i];
 
 		c = (c & 63);
 		__privateKeyPassword_cache[i] = *(table + c);
@@ -144,26 +131,9 @@ void	__privateKeyPassword_Compute(void)
 	__privateKeyPassword_cache[PASSWORD_SIZE] = '\0';
 }
 
-char *	__privateKeyPassword_malloc(const char * source)
+char *	__privateKeyPassword_GetPassword(void)
 {
-	size_t				len = strlen(source);
-
-	if (!len)
-		pkpwd_returnError(NOPASSWORD, NULL);
-
-	char *				password = malloc(len + 1);
-
-	if (!password)
-		pkpwd_returnError(NOMEMORY, NULL);
-
-	strcpy(password, source);
-
-	pkpwd_returnError(NOERROR, password);
-}
-
-char *	__privateKeyPassword_fromCache(void)
-{
-	int 				len = strlen((char *) __privateKeyPassword_cache);
+	int 	len = strlen((char *) __privateKeyPassword_cache);
 
 	if (len) 
 		pkpwd_returnError(NOERROR, __privateKeyPassword_cache);
@@ -171,23 +141,6 @@ char *	__privateKeyPassword_fromCache(void)
 	__privateKeyPassword_Compute();
 
 	return __privateKeyPassword_cache;
-}
-
-int __privateKeyPassword_dynamic(char * buffer)
-{
-	char *				password = __privateKeyPassword_fromCache();
-	
-	if (password && strlen(password))
-	{
-		strcpy(buffer, password);
-	}
-	
-	pkpwd_returnError(NOERROR, strlen(buffer));
-}
-
-int	__privateKeyPassword_proxy(char * buffer)
-{
-	return __privateKeyPassword_dynamic(buffer);	
 }
 
 // privateKeyPassword_error_t getPrivateKeyPassword_Error(void)
@@ -203,18 +156,7 @@ EXPORTED	privateKeyPassword_error_t	getPrivateKeyPassword_Error(void)
 	return error;
 }
 
-// static char *getStaticPrivateKeyPassword(void)
-//
-// - returns the pointer to a static string containing the password
-// - the returned string is empty in case of any error
-// - call getPrivateKeyPassword_Error() to get an error code explaining the
-//   reason for the latest error
-EXPORTED	char *	getStaticPrivateKeyPassword(void)
-{
-	return __privateKeyPassword_fromCache();
-}
-
-// char *getPrivateKeyPassword(void)
+// const char * getPrivateKeyPassword(void)
 //
 // - returns the pointer to a dynamically allocated buffer containing
 //   the password string (incl. trailing '\0' character)
@@ -222,21 +164,9 @@ EXPORTED	char *	getStaticPrivateKeyPassword(void)
 // - the caller is responsible to free the buffer, if the pointer isn't NULL
 // - call getPrivateKeyPassword_Error() to get an error code explaining the
 //   reason for the latest error
-EXPORTED	char *	getPrivateKeyPassword(void)
+EXPORTED	const char *	getPrivateKeyPassword(void)
 {
-	return __privateKeyPassword_malloc(__privateKeyPassword_fromCache());
-}
-
-// void getPrivateKeyPassword_setMethod(privateKeyPassword_method_t method)
-//
-// - set the method used to get the password
-// - calling vendor's function directly isn't supported from statically linked
-//   binaries and will result in a SIGSEGV while doing dlopen() calls
-// - the alternative way (calling a proxy binary) has other disadvantages like
-//   an additional dependency and a higher 'costs' starting another process
-EXPORTED	void	getPrivateKeyPassword_setMethod(UNUSED privateKeyPassword_method_t method)
-{
-	return;
+	return __privateKeyPassword_GetPassword();
 }
 
 // int getPrivateKeyPassword_OpenSSL_Callback()
@@ -257,7 +187,7 @@ EXPORTED	int	getPrivateKeyPassword_OpenSSL_Callback(char * buf, int size, int rw
 	char *				source = userdata;
 
 	if (!source)
-		source = __privateKeyPassword_fromCache();
+		source = __privateKeyPassword_GetPassword();
 
 	if ((len = strlen(source)))
 	{
@@ -268,15 +198,4 @@ EXPORTED	int	getPrivateKeyPassword_OpenSSL_Callback(char * buf, int size, int rw
 	}
 
 	return len;
-}
-
-// int getPrivateKeyPassword_WithBuffer(char *buf, size_t size)
-//
-// - an additional function with the needed interface to be compatible with
-//   the library from er13
-EXPORTED	int	getPrivateKeyPassword_WithBuffer(char * buf, size_t size)
-{
-	int 				len = getPrivateKeyPassword_OpenSSL_Callback(buf, size - 1, 0, NULL);
-
-	return (len == 0 ? -1 : len);
 }

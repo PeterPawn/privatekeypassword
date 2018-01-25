@@ -31,7 +31,7 @@
 
 int main(__attribute__((unused)) int argc, __attribute__((unused)) char** argv)
 {
-	char *password = getStaticPrivateKeyPassword();
+	const char *password = getPrivateKeyPassword();
 	int len = strlen(password);
 
 	if (len) printf("%s\n", password);
