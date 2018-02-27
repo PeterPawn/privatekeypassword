@@ -79,30 +79,14 @@ LIB_OBJS = $(LIB_SRCS:%.c=%.o)
 # bility of symbols is set to 'hidden', the code declares each really exported function with appro-   #
 # priate attributes itself.                                                                           #
 #                                                                                                     #
-# DO_DEBUG will be used by Freetz and we will split compiler options to match the ideas from the      #
-# maintainers there. If it's not a call from the Freetz toolchain, another setting (DEBUG) will be    #
-# used to decide, which optimizations should be used while compiling the code.                        #
-#                                                                                                     #
 #######################################################################################################
-ifdef FREETZ_BASE_DIR
-# Freetz toolchain
-ifdef DO_DEBUG
-OPT = -O0 -ggdb
-else
-OPT = -O2
-# disable all assertions? why?
-override CPPFLAGS += -DNDEBUG
-endif
-override CFLAGS += -W -Wall -std=c99 $(OPT) -fvisibility=hidden
-else
-# own/other toolchain
 ifdef DEBUG
 # no optimizations, with GDB compatible debug symbols - if we want to debug (step into) the library
-override CFLAGS += -W -Wall -Wextra -std=c99 -O0 -ggdb -fvisibility=hidden
+CC_OPT = -O0 -ggdb
 else
-override CFLAGS += -W -Wall -Wextra -std=c99 -O2 -fvisibility=hidden
+CC_OPT = -O2
 endif
-endif
+override CFLAGS += -W -Wall -std=c99 -fvisibility=hidden $(CC_OPT)
 #######################################################################################################
 #                                                                                                     #
 # Uncomment this rule to prevent use of CPPFLAGS settings from some unknown source - or even a        #
@@ -116,8 +100,6 @@ endif
 #######################################################################################################
 #                                                                                                     #
 # Generate position independent code for the library.                                                 #
-#                                                                                                     #
-# Freetz provides a own $(FPIC) variable for this, but there are other target toolchains to support.  #
 #                                                                                                     #
 #######################################################################################################
 $(LIB_OBJS): CFLAGS += -fPIC
@@ -148,13 +130,15 @@ $(BINARY): LDLIBS += -l$(BASENAME)
 all: $(LIB_SO) $(LIB_A) $(BINARY)
 #######################################################################################################
 #                                                                                                     #
-# install library related files from the Freetz toolchain                                             #
+# install library related files from Freetz or any other toolchain, which wants to see any 'install'  #
+# target instead of copying files (DSO, static library and header file) itself; the CLI binary is not #
+# installed here                                                                                      #
 #                                                                                                     #
 # DESTDIR will be set (by the caller) to the target (staging) directory.                              #
 #                                                                                                     #
-# There's no other 'install' target for 'make' ... copy the files manually to the right location(s)   #
-# or specify your build directory as additional source for include files and link libraries while     #
-# building applications, which use this project.                                                      #
+# There's (intentionally) no other 'install' target for 'make' ... copy the files manually to the     #
+# right location(s) or specify your build directory as additional source for include files and link   #
+# libraries while building applications with this project.                                            #
 #                                                                                                     #
 #######################################################################################################
 install-lib: $(LIB_SO) $(LIB_A) $(LIBHDR)
@@ -183,7 +167,6 @@ $(LIB_A): $(LIB_OBJS)
 #                                                                                                     #
 #######################################################################################################
 $(BINARY): $(BIN_OBJS) | $(LIB_SO)
-	$(CC) $(LDFLAGS) $^ -L. -l$(BASENAME) -o $@ 
 #######################################################################################################
 #                                                                                                     #
 # everything to make, if a header file changes                                                        #
