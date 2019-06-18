@@ -1,4 +1,6 @@
 /*
+ * SPDX-License-Identifier: RSA-MD
+ *
  * vim: set tabstop=4 syntax=c :
  *
  * MD5C.C - RSA Data Security, Inc., MD5 message-digest algorithm

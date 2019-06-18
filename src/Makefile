@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
 #######################################################################################################
 #                                                                                                     #
 # Copyright (C) 2014-2017 P.Hämmerlein (peterpawn@yourfritz.de)                                       #
