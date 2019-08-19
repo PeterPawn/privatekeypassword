@@ -24,11 +24,6 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic error "-Wfatal-errors"
 
-#if !defined(__UCLIBC__)
-#error This library is designed to work with the uClibc library on a FRITZ!OS device.
-#pragma GCC error "Compilation aborted."
-#endif
-
 #pragma GCC diagnostic pop
 
 #include <stddef.h>
